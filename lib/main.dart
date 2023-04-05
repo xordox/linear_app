@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:linear_app/cubit/timer_cubit.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,47 +33,62 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  double _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter+=0.2;
-    });
-  }
+  
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-
-        LinearProgressWIdget(counter: _counter,),
-            TextFormWidget(counter: _counter,incrementCounter: _incrementCounter,),
-            TextFormWidget(counter: _counter,incrementCounter: _incrementCounter,),
-          ],
+    return BlocProvider(
+      create: (context) => TimerCubit(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: Column(
+            children: [
+              BlocBuilder<TimerCubit, TimerState>(
+                builder: (context, state) {
+                  if (state is TimerProgress) {
+                    return LinearProgressWidget(
+                      counter: (state.elasped! / 20).toDouble(),
+                    );
+                  }
+                  return const SizedBox();
+                },
+              ),
+              const TextFormWidget(
+                ),
+              const TextFormWidget(
+                ),
+              Builder(builder: (context) {
+                return const ElevatedButtonWidget();
+              }),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    );
+  }
+}
+
+class ElevatedButtonWidget extends StatelessWidget {
+  const ElevatedButtonWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () => BlocProvider.of<TimerCubit>(context).startTimer(0),
+      child: const Text("start"),
     );
   }
 }
 
 class TextFormWidget extends StatefulWidget {
   const TextFormWidget({
-    required this.counter,
-    required this.incrementCounter,
     Key? key,
   }) : super(key: key);
-  final double counter;
-  final Function() incrementCounter;
 
   @override
   State<TextFormWidget> createState() => _TextFormWidgetState();
@@ -77,45 +96,49 @@ class TextFormWidget extends StatefulWidget {
 
 class _TextFormWidgetState extends State<TextFormWidget> {
   bool isPressed = false;
-  TextEditingController controller = TextEditingController(text:"");
+  TextEditingController controller = TextEditingController(text: "");
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        TextFormField(
-          controller: controller,
-          onEditingComplete: (() => !isPressed?setState(() {
-            widget.incrementCounter();
-            isPressed = true;
-          }):null)
-        ),
-        const Text(
-          'You have pushed the button this many times:',
-        ),
-        Text(
-          '${widget.counter}',
-          style: Theme.of(context).textTheme.headline4,
-        ),
+         TextFormField(
+                  controller: controller,
+                  onEditingComplete: (() {
+                    log("onEditingComplete");
+                    //if (!BlocProvider.of<TimerCubit>(context).isPressed) {
+                      if(!isPressed){
+                      //BlocProvider.of<TimerCubit>(context).startTimer(0);
+                      BlocProvider.of<TimerCubit>(context).checkIsPressed(0.3);
+                       setState(() {
+                          //widget.incrementCounter();
+                          isPressed = true;
+                        });
+                    }
+                  })),
       ],
     );
   }
 }
 
-class LinearProgressWIdget extends StatefulWidget {
+class LinearProgressWidget extends StatefulWidget {
   final double counter;
-  const LinearProgressWIdget({required this.counter,
+  const LinearProgressWidget({
+    required this.counter,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<LinearProgressWIdget> createState() => _LinearProgressWIdgetState();
+  State<LinearProgressWidget> createState() => _LinearProgressWidgetState();
 }
 
-class _LinearProgressWIdgetState extends State<LinearProgressWIdget> {
+class _LinearProgressWidgetState extends State<LinearProgressWidget> {
   @override
   Widget build(BuildContext context) {
-    return LinearProgressIndicator(minHeight:8,value: widget.counter,);
+    return LinearProgressIndicator(
+      minHeight: 8,
+      value: widget.counter,
+    );
   }
 }
