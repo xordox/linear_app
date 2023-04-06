@@ -49,8 +49,17 @@ class _MyHomePageState extends State<MyHomePage> {
               BlocBuilder<TimerCubit, TimerState>(
                 builder: (context, state) {
                   if (state is TimerProgress) {
-                    return LinearProgressWidget(
-                      counter: (state.elasped! / 20).toDouble(),
+                    return Column(
+                      children: [
+                        const SizedBox(height: 40,),
+                        CircularProgressWidget(
+                          counter: (state.elasped! / 20).toDouble(),
+                        ),
+                        const SizedBox(height: 40,),
+                        LinearProgressWidget(
+                          counter: (state.elasped! / 20).toDouble(),
+                        ),
+                      ],
                     );
                   }
                   return const SizedBox();
@@ -60,9 +69,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               const TextFormWidget(
                 ),
-              Builder(builder: (context) {
-                return const ElevatedButtonWidget();
-              }),
+              const TextFormWidget(
+                ),
+              const TextFormWidget(
+                ),
             ],
           ),
         ),
@@ -71,19 +81,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class ElevatedButtonWidget extends StatelessWidget {
-  const ElevatedButtonWidget({
+class CircularProgressWidget extends StatefulWidget {
+  final double counter;
+  const CircularProgressWidget({
+    required this.counter,
     Key? key,
   }) : super(key: key);
 
   @override
+  State<CircularProgressWidget> createState() => _CircularProgressWidgetState();
+}
+
+class _CircularProgressWidgetState extends State<CircularProgressWidget> {
+  @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () => BlocProvider.of<TimerCubit>(context).startTimer(0),
-      child: const Text("start"),
-    );
+    return Stack(
+      children: [
+        SizedBox(width: 50,height: 50,
+          child: CircularProgressIndicator(
+          value: widget.counter,
+      ),
+        ),
+
+        const SizedBox(width: 50,height: 50,child:  Icon(Icons.person)),
+    ]);
   }
 }
+
 
 class TextFormWidget extends StatefulWidget {
   const TextFormWidget({
@@ -107,16 +131,14 @@ class _TextFormWidgetState extends State<TextFormWidget> {
                   controller: controller,
                   onEditingComplete: (() {
                     log("onEditingComplete");
-                    //if (!BlocProvider.of<TimerCubit>(context).isPressed) {
                       if(!isPressed){
-                      //BlocProvider.of<TimerCubit>(context).startTimer(0);
+                        log("isPressed: $isPressed");
                       BlocProvider.of<TimerCubit>(context).checkIsPressed(0.3);
                        setState(() {
-                          //widget.incrementCounter();
                           isPressed = true;
                         });
                     }
-                  })),
+                  }),),
       ],
     );
   }
